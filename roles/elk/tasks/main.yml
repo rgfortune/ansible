@@ -1,0 +1,79 @@
+- name: Install Package dependencies (openjdk, libselinux-python, epel)
+  yum: name={{ item }} state=installed
+  with_items:
+    - java-1.8.0-openjdk
+    - libselinux-python
+    - epel-release
+    - vim-enhanced
+
+# ELASTICSEARCH
+
+- name: Import elasticsearch GPG key
+  rpm_key: state=present key=http://packages.elastic.co/GPG-KEY-elasticsearch
+
+- copy: src=elasticsearch.repo dest=/etc/yum.repos.d/elasticsearch.repo
+
+- name: Install Elasticsearch and enable the service
+  yum: name=elasticsearch state=installed
+
+- template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml
+
+- name: Restart Elasticsearch and enable on boot
+  service: name=elasticsearch state=started enabled=yes
+
+# KIBANA
+
+- name: Fetch Kibana source file
+  get_url: url=https://download.elastic.co/kibana/kibana/kibana-{{ kibana_version }}-linux-x64.tar.gz dest=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz
+
+- name: Extract Kibana
+  unarchive: src=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz dest=/opt/ copy=no
+
+- name: Symlink Kibana directory
+  file: src=/opt/kibana-{{ kibana_version }}-linux-x64 dest=/opt/kibana state=link
+
+- name: Create kibana group
+  group: name=kibana state=present gid=1005
+
+- name: Create kibana local account
+  user: name=kibana shell=/sbin/nologin uid=1005 group=kibana
+
+## Create Kibana configs and init script
+- copy: src=kibana.yml dest=/opt/kibana/config/kibana.yml follow=yes
+- copy: src=kibana-4.x-init dest=/etc/init.d/kibana mode=0755
+- copy: src=kibana-4.x-default dest=/etc/default/kibana
+
+- name: Set Kibana directory ownership
+  file: path=/opt/kibana/ state=directory owner=kibana group=kibana follow=yes recurse=yes
+
+- name: Start Kibana and enable on boot
+  service: name=kibana state=started enabled=yes
+
+
+### Setup Nginx as a reverse proxy for Kibana
+
+- name: Test for existence of default nginx vhost
+  stat: path=/etc/nginx/conf.d/default.conf
+  register: nginx_default
+
+- name: Disable default nginx vhost
+  command: mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.disable
+  when: nginx_default.stat.exists == True
+
+- name: Create reverse proxy vhost for Kibana
+  copy: src=nginx-kibana.conf dest=/etc/nginx/conf.d/kibana.conf
+  notify:
+    - Reload Nginx
+
+# LOGSTASH
+
+- name: Create logstash repo definition
+  copy: src=logstash.repo dest=/etc/yum.repos.d/logstash.repo
+
+- name: Install logstash
+  yum: name=logstash state=installed
+
+- name: Create logstash config for Apache logs
+  copy: src=logstash-apache.conf dest=/etc/logstash/conf.d/apache.conf
+  notify:
+    - Start Logstash

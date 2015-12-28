@@ -1,0 +1,7 @@
+- name: Install epel repo
+  yum: name=epel-release state=installed
+
+- name: Install Nginx
+  yum: name=nginx state=installed
+  notify:
+    - Start Nginx

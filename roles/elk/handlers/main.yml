@@ -1,0 +1,8 @@
+- name: Start Elasticsearch
+  service: name=elasticsearch state=started
+
+- name: Reload Nginx
+  service: name=nginx state=reloaded
+
+- name: Start Logstash
+  service: name=logstash state=started
