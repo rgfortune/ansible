@@ -9,7 +9,6 @@ Vagrant.configure(2) do |config|
   config.vm.box = "bento/centos-6.7"
   
   config.vm.define "elk" do |elk|
-    #elk.vm.box = "elk"
     elk.vm.network "forwarded_port", guest: 80, host: 8080
 
     # Run Ansible from the Vagrant VM
@@ -19,6 +18,6 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "web" do |web|
-    #web.vm.box = "web"
+    web.vm.network "forwarded_port", guest: 80, host: 8080
   end
 end
