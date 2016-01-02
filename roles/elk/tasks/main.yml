@@ -52,14 +52,6 @@
 
 ### Setup Nginx as a reverse proxy for Kibana
 
-- name: Test for existence of default nginx vhost
-  stat: path=/etc/nginx/conf.d/default.conf
-  register: nginx_default
-
-- name: Disable default nginx vhost
-  command: mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.disable
-  when: nginx_default.stat.exists == True
-
 - name: Create reverse proxy vhost for Kibana
   copy: src=nginx-kibana.conf dest=/etc/nginx/conf.d/kibana.conf
   notify:

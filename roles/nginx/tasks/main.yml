@@ -5,3 +5,6 @@
   yum: name=nginx state=installed
   notify:
     - Start Nginx
+
+- name: Remove default nginx vhost
+  file: path=/etc/nginx/conf.d/default.conf state=absent
