@@ -27,9 +27,11 @@
   get_url: >
    url=https://download.elastic.co/kibana/kibana/kibana-{{ kibana_version }}-linux-x64.tar.gz
    dest=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz
+  register: fetch_url
 
 - name: Extract Kibana
   unarchive: src=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz dest=/opt/ copy=no
+  when: fetch_url.changed == true
 
 - name: Symlink Kibana directory
   file: src=/opt/kibana-{{ kibana_version }}-linux-x64 dest=/opt/kibana state=link
