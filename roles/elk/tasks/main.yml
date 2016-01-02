@@ -24,7 +24,9 @@
 # KIBANA
 
 - name: Fetch Kibana source file
-  get_url: url=https://download.elastic.co/kibana/kibana/kibana-{{ kibana_version }}-linux-x64.tar.gz dest=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz
+  get_url: >
+   url=https://download.elastic.co/kibana/kibana/kibana-{{ kibana_version }}-linux-x64.tar.gz
+   dest=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz
 
 - name: Extract Kibana
   unarchive: src=/tmp/kibana-{{ kibana_version }}-linux-x64.tar.gz dest=/opt/ copy=no
