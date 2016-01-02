@@ -69,7 +69,22 @@
 - name: Install logstash
   yum: name=logstash state=installed
 
-- name: Create logstash config for Apache logs
-  copy: src=logstash-apache.conf dest=/etc/logstash/conf.d/apache.conf
+- name: Create logstash patterns directory
+  file: >
+   path=/opt/logstash/patterns
+   state=directory
+   mode=0755 owner=logstash group=logstash
+
+- name: Create nginx logstash pattern file
+  copy: src=logstash-nginx-pattern dest=/opt/logstash/patterns/nginx
+
+- name: Set ownership on nginx pattern file
+  file: path=/opt/logstash/patterns/nginx owner=logstash group=logstash
+
+- name: Set ACLs on directories logstash needs to access
+  acl: name=/var/log/nginx entity=logstash etype=group permissions="x" state=present
+
+- name: Create logstash config for Nginx logs
+  copy: src=logstash-nginx.conf dest=/etc/logstash/conf.d/nginx.conf
   notify:
     - Start Logstash
